@@ -10,13 +10,26 @@ service cloud.firestore {
     // Fields: email, displayName, photoURL, stage, clinicalStage, createdAt
     //
     // Collection: /users/{userId}/memories/{memoryId}
-    // Fields: userId, sessionId, text, mediaUrl, tags, emotionalValence, status, createdAt
+    // Fields: userId, sessionId, text, mediaUrl, tags, emotionalValence, status, createdAt, audioUrl, photoUrl
     //
     // Collection: /users/{userId}/sessions/{sessionId}
-    // Fields: userId, type, startedAt, endedAt, summary, qualityScore, participants
+    // Fields: userId, type, startedAt, endedAt, summary, qualityScore, participants, tags, audioUrl
     //
     // Collection: /users/{userId}/consent/{consentId}
     // Fields: userId, status, signedHash, permissions, createdAt
+    //
+    // Collection: /users/{userId}/pimLayers/{layerId}
+    // Sub-collections: identityLayer, narrativeLayer, relationalLayer, valuesLayer
+    //
+    // Collection: /users/{userId}/familyMembers/{memberId}
+    // Collection: /users/{userId}/familyContributions/{contribId}
+    // Collection: /users/{userId}/sharedMoments/{momentId}
+    // Collection: /users/{userId}/lucidWindow/{windowId}
+    // Collection: /users/{userId}/biometricTokens/{tokenId}
+    // Collection: /users/{userId}/consentEvents/{eventId}
+    // Collection: /users/{userId}/cognitiveMetrics/{metricId}
+    //
+    // Top-Level Collection: /familyInvites/{inviteId}
     //
     // ===============================================================
 
@@ -30,7 +43,19 @@ service cloud.firestore {
     }
 
     function isDefaultAdmin() {
-      return request.auth != null && request.auth.token.email == "vibhagoparaju@gmail.com";
+      return isAuthenticated() && request.auth.token.email == "vibhagoparaju@gmail.com";
+    }
+
+    // Validate string length
+    function validStringLength(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+        request.resource.data[field].size() >= minLen &&
+        request.resource.data[field].size() <= maxLen;
+    }
+
+    // Validate that a field is either a timestamp or a valid date string
+    function isValidTemporal(field) {
+      return request.resource.data[field] is timestamp || (request.resource.data[field] is string && request.resource.data[field].size() > 10);
     }
 
     // Domain Validators
@@ -42,10 +67,13 @@ service cloud.firestore {
     }
 
     function isValidMemory(data) {
-      return data.keys().hasAll(['userId', 'text', 'createdAt']) &&
-             data.userId == request.auth.uid &&
-             data.text is string && data.text.size() < 10000 &&
-             data.createdAt is string; // Validating format via app or simplified rules
+      return data.keys().hasAll(['text']) &&
+             data.text is string && data.text.size() < 20000;
+    }
+
+    function isValidSession(data) {
+      return data.keys().hasAll(['type']) &&
+             data.type in ['CAPTURE', 'BRIDGE'];
     }
 
     match /users/{userId} {
@@ -62,14 +90,62 @@ service cloud.firestore {
 
       match /sessions/{sessionId} {
         allow read: if isOwner(userId) || isDefaultAdmin();
-        allow create: if isOwner(userId);
-        allow update: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidSession(request.resource.data);
+        allow update: if isOwner(userId) && isValidSession(request.resource.data);
+        allow delete: if isOwner(userId);
       }
 
       match /consent/{consentId} {
         allow read: if isOwner(userId) || isDefaultAdmin();
         allow create: if isOwner(userId);
       }
+
+      // singleton/active documents
+      match /pimLayers/{docId} {
+        allow read: if isOwner(userId) || isDefaultAdmin();
+        allow write: if isOwner(userId);
+      }
+
+      match /lucidWindow/{docId} {
+        allow read: if isOwner(userId) || isDefaultAdmin();
+        allow write: if isOwner(userId);
+      }
+
+      match /familyMembers/{memberId} {
+        allow read: if isOwner(userId) || isDefaultAdmin();
+        allow write: if isOwner(userId);
+      }
+
+      match /familyContributions/{contribId} {
+        allow read: if isOwner(userId) || isDefaultAdmin();
+        allow write: if isOwner(userId);
+      }
+
+      match /sharedMoments/{momentId} {
+        allow read: if isOwner(userId) || isDefaultAdmin();
+        allow write: if isOwner(userId);
+      }
+
+      match /biometricTokens/{tokenId} {
+        allow read: if isOwner(userId) || isDefaultAdmin();
+        allow write: if isOwner(userId);
+      }
+
+      match /consentEvents/{eventId} {
+        allow read: if isOwner(userId) || isDefaultAdmin();
+        allow write: if isOwner(userId);
+      }
+
+      match /cognitiveMetrics/{metricId} {
+        allow read: if isOwner(userId) || isDefaultAdmin();
+        allow write: if isOwner(userId);
+      }
+    }
+
+    match /familyInvites/{inviteId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
     }
   }
 }

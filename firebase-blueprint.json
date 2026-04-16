@@ -75,6 +75,42 @@
     "/users/{userId}/consent/{consentId}": {
       "schema": "ConsentRecord",
       "description": "Consent history for a specific user"
+    },
+    "/users/{userId}/pimLayers/active": {
+      "schema": "object",
+      "description": "PIM (Personal Identity Model) layers for a user"
+    },
+    "/users/{userId}/familyMembers/{memberId}": {
+      "schema": "object",
+      "description": "Registered family members in Robert's Circle of Care"
+    },
+    "/users/{userId}/familyContributions/{contribId}": {
+      "schema": "object",
+      "description": "Memories contributed by family members"
+    },
+    "/users/{userId}/sharedMoments/{momentId}": {
+      "schema": "object",
+      "description": "Synchronized moments between PIM and family contributions"
+    },
+    "/users/{userId}/lucidWindow/current": {
+      "schema": "object",
+      "description": "Real-time cognitive clarity predictions"
+    },
+    "/users/{userId}/biometricTokens/{tokenId}": {
+      "schema": "object",
+      "description": "Stored biometric integration tokens"
+    },
+    "/users/{userId}/consentEvents/{eventId}": {
+      "schema": "object",
+      "description": "Granular log of consent-related user actions"
+    },
+    "/users/{userId}/cognitiveMetrics/{metricId}": {
+      "schema": "object",
+      "description": "Historical cognitive drift and communication metrics"
+    },
+    "/familyInvites/{inviteId}": {
+      "schema": "object",
+      "description": "Top-level pending family invitations"
     }
   }
 }
