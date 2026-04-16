@@ -1,0 +1,6 @@
+{
+  "name": "LastMile Memory",
+  "description": "An AI-powered Identity Preservation & Memory Bridge System for individuals facing cognitive decline.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["AI-guided storytelling", "Identity Mapping", "Real-time Bridge Sessions"]
+}

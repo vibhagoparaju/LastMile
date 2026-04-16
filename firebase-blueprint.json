@@ -1,0 +1,80 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile representing either the person preservation their memory or a family member.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email", "description": "User email address" },
+        "displayName": { "type": "string", "description": "Full name" },
+        "photoURL": { "type": "string", "format": "uri", "description": "Profile picture URL" },
+        "stage": { "type": "string", "enum": ["PLANNER", "DECLINING", "CAREGIVER", "LEGACY"], "description": "Current user role/stage" },
+        "clinicalStage": { "type": "string", "description": "Clinical cognitive stage (if applicable)" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Account creation timestamp" }
+      },
+      "required": ["email", "displayName", "stage"]
+    },
+    "MemoryChunk": {
+      "title": "Memory Chunk",
+      "description": "A single captured block of identity, story, or value.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "ID of the person whose memory it is" },
+        "sessionId": { "type": "string", "description": "ID of the capture session" },
+        "text": { "type": "string", "description": "Transcribed or written content" },
+        "mediaUrl": { "type": "string", "format": "uri", "description": "Optional media (audio/photo) link" },
+        "tags": { "type": "array", "items": { "type": "string" }, "description": "AI-detected tags (e.g., '1987', 'Chennai', 'Roadtrip')" },
+        "emotionalValence": { "type": "number", "description": "Emotional score (-1 to 1)" },
+        "status": { "type": "string", "enum": ["DRAFT", "PUBLISHED", "PRIVATE"], "description": "Privacy status" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Capture timestamp" }
+      },
+      "required": ["userId", "text", "createdAt"]
+    },
+    "Session": {
+      "title": "Session",
+      "description": "A recording or bridge session event.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Primary user ID" },
+        "type": { "type": "string", "enum": ["CAPTURE", "BRIDGE"], "description": "Session type" },
+        "startedAt": { "type": "string", "format": "date-time" },
+        "endedAt": { "type": "string", "format": "date-time" },
+        "summary": { "type": "string", "description": "AI-generated summary" },
+        "qualityScore": { "type": "number" },
+        "participants": { "type": "array", "items": { "type": "string" }, "description": "Participating user IDs" }
+      },
+      "required": ["userId", "type", "startedAt"]
+    },
+    "ConsentRecord": {
+      "title": "Consent Record",
+      "description": "Cryptographically signed consent for data capture and AI processing.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "status": { "type": "string", "enum": ["PENDING", "ACTIVE", "REVOKED"] },
+        "signedHash": { "type": "string" },
+        "permissions": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "status", "signedHash", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Core user document"
+    },
+    "/users/{userId}/memories/{memoryId}": {
+      "schema": "MemoryChunk",
+      "description": "Captured memories for a specific user"
+    },
+    "/users/{userId}/sessions/{sessionId}": {
+      "schema": "Session",
+      "description": "Capture or Bridge sessions for a specific user"
+    },
+    "/users/{userId}/consent/{consentId}": {
+      "schema": "ConsentRecord",
+      "description": "Consent history for a specific user"
+    }
+  }
+}

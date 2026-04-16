@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Helvetica Neue", Arial, sans-serif;
+  --font-serif: "Georgia", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-primary: #E5C07B; /* Gold Accent */
+  --color-secondary: #0A0A0B; /* Deep Black BG */
+  --color-accent: #E06C75; /* Priority/Re-anchor Red */
+  --color-muted: #8E8E93;
+  --color-card: #141417;
+  --color-border-dim: #2C2C2E;
+}
+
+@layer base {
+  body {
+    @apply bg-secondary text-[#E2E2E2] font-sans antialiased;
+  }
+  
+  h1, h2, h3, h4 {
+    @apply font-serif text-primary font-normal;
+  }
+}
+
+.glass {
+  @apply bg-card/80 backdrop-blur-md border border-border-dim;
+}
+
+.shadow-soft {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.nav-item {
+  @apply px-3 py-2 rounded-lg text-muted hover:text-primary transition-all flex items-center gap-2;
+}
+
+.nav-item.active {
+  @apply bg-card text-primary border border-border-dim;
+}
+
+.pill {
+  @apply inline-block px-3 py-1 bg-border-dim rounded-full text-[10px] text-muted uppercase tracking-wider;
+}
+
+

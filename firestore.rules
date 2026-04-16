@@ -1,0 +1,75 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: /users/{userId}
+    // Fields: email, displayName, photoURL, stage, clinicalStage, createdAt
+    //
+    // Collection: /users/{userId}/memories/{memoryId}
+    // Fields: userId, sessionId, text, mediaUrl, tags, emotionalValence, status, createdAt
+    //
+    // Collection: /users/{userId}/sessions/{sessionId}
+    // Fields: userId, type, startedAt, endedAt, summary, qualityScore, participants
+    //
+    // Collection: /users/{userId}/consent/{consentId}
+    // Fields: userId, status, signedHash, permissions, createdAt
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDefaultAdmin() {
+      return request.auth != null && request.auth.token.email == "vibhagoparaju@gmail.com";
+    }
+
+    // Domain Validators
+    function isValidUser(data) {
+      return data.keys().hasAll(['email', 'displayName', 'stage']) &&
+             data.email is string &&
+             data.displayName is string && data.displayName.size() < 100 &&
+             data.stage in ['PLANNER', 'DECLINING', 'CAREGIVER', 'LEGACY'];
+    }
+
+    function isValidMemory(data) {
+      return data.keys().hasAll(['userId', 'text', 'createdAt']) &&
+             data.userId == request.auth.uid &&
+             data.text is string && data.text.size() < 10000 &&
+             data.createdAt is string; // Validating format via app or simplified rules
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isDefaultAdmin();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data);
+
+      match /memories/{memoryId} {
+        allow read: if isOwner(userId) || isDefaultAdmin();
+        allow create: if isOwner(userId) && isValidMemory(request.resource.data);
+        allow update: if isOwner(userId) && isValidMemory(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      match /sessions/{sessionId} {
+        allow read: if isOwner(userId) || isDefaultAdmin();
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId);
+      }
+
+      match /consent/{consentId} {
+        allow read: if isOwner(userId) || isDefaultAdmin();
+        allow create: if isOwner(userId);
+      }
+    }
+  }
+}
